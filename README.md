@@ -52,6 +52,8 @@ The Cloud Function also looks for a field called `uri_path` in the push message 
 
 If both `uri_path` parameters are specified, then `uri_path` in the PubSub message takes higher precedence. If none are specified, then an error is returned by the Cloud Function.
 
+To restrict unwanted and external invocations of the function, the `ingress-settings` is set to `internal-only`. Hence only resources within the project can invoke the Cloud Function.
+
 ### Step 2: Setup Serverless VPC Access Connector
 
 
