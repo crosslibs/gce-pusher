@@ -173,3 +173,5 @@ set -e
 echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME"
 gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --push-endpoint "$PUSH_ENDPOINT"
 echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME [DONE]"
+
+echo "Startup script finished successfully."

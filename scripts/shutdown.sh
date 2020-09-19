@@ -33,3 +33,5 @@ set -e
 echo "Removing subscription with name: $UNIQUE_SUBSCRIPTION_NAME"
 gcloud pubsub subscriptions delete "$UNIQUE_SUBSCRIPTION_NAME"
 echo "Removing subscription with name: $UNIQUE_SUBSCRIPTION_NAME [DONE]"
+
+echo "Shutdown script finished successfully."
