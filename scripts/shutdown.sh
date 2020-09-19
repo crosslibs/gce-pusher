@@ -26,12 +26,16 @@ then
     exit -1
 fi
 
-# Exit on error
-set -e
-
 # Remove Cloud Pub/Sub subscription
 echo "Removing subscription with name: $UNIQUE_SUBSCRIPTION_NAME"
-gcloud pubsub subscriptions delete "$UNIQUE_SUBSCRIPTION_NAME"
-echo "Removing subscription with name: $UNIQUE_SUBSCRIPTION_NAME [DONE]"
+DELETE_OUTPUT=$(gcloud pubsub subscriptions delete "$UNIQUE_SUBSCRIPTION_NAME" 2>&1)
+if echo "$DELETE_OUTPUT" | grep -q "^Deleted subscription"
+then
+    echo "Pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME) deleted succesfully."
+else
+    echo "Error occurred while deleting pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME)."
+    echo "Error details: $DELETE_OUTPUT"
+    exit -2
+fi
 
 echo "Shutdown script finished successfully."

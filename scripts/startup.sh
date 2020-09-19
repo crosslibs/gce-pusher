@@ -152,6 +152,22 @@ print_config ()
     echo "pub/sub subscription push endpoint = $PUSH_ENDPOINT"
 }
 
+# Create subscription to the specified topic
+create_pubsub_subscription ()
+{
+    echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME"
+    CREATE_OUTPUT=$(gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --push-endpoint "$PUSH_ENDPOINT" 2>&1)
+    if echo "$CREATE_OUTPUT" | grep -q "^Created subscription"
+    then
+        echo "Pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME) for topic ($PUBSUB_TOPIC) created succesfully."
+    else
+        echo "Error occurred while creating pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME) for topic ($PUBSUB_TOPIC)."
+        echo "Error details: $CREATE_OUTPUT"
+        exit -8
+    fi
+}
+
+
 #Validations
 validate_pubsub_subscription
 validate_pubsub_topic
@@ -166,12 +182,7 @@ prepare_push_endpoint
 # Print configuration
 print_config
 
-# Exit on error
-set -e
-
-# Create Cloud Pub/Sub subscription to the specified topic
-echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME"
-gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --push-endpoint "$PUSH_ENDPOINT"
-echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME [DONE]"
+# Create subscription to the specified topic
+create_pubsub_subscription
 
 echo "Startup script finished successfully."
