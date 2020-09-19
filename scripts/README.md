@@ -29,5 +29,5 @@ and
 1. `uri-scheme=<http|https> (Optional. Default value: https)`
 2. `uri-path=<URI path of the webservice running on this instance> (Optional. Default value: nil)`
 3. `pubsub-topic=<pubsub topic name> (Required and must exist within the current project)`
-4. `cloudfn_endpoint=<URI of Cloud Function to be used for push> (Required and must only contain the URI scheme and host only. No URI path or query parameters or fragments allowed)`
+4. `cloudfn-endpoint=<URI of Cloud Function to be used for push> (Required and must only contain the URI scheme and host only. No URI path or query parameters or fragments allowed)`
 
