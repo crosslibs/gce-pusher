@@ -125,12 +125,12 @@ prepare_push_endpoint ()
 {
     PUSH_ENDPOINT="$CLOUDFN_ENDPOINT?ip=$COMPUTE_ENGINE_IP"
     
-    if [ -z "URI_PATH" ]
+    if [ ! -z "URI_PATH" ]
     then
         PUSH_ENDPOINT="$PUSH_ENDPOINT&uri-path=$URI_PATH"
     fi
     
-    if [ -z "URI_SCHEME" ]
+    if [ ! -z "URI_SCHEME" ]
     then
         PUSH_ENDPOINT="$PUSH_ENDPOINT&uri-scheme=$URI_SCHEME"
     fi
