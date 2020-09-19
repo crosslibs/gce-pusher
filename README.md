@@ -2,7 +2,7 @@
 
 The solution provides a workflow for pushing messages from Pub/Sub topic to Google Compute Engine (GCE) instance which do not have a public IP. 
 
-Cloud Pub/Sub does not support non-HTTPS and non-public endpoints for push subscriptions ([source](https://cloud.google.com/pubsub/docs/push)). Often times GCE instances hosting web services are deployed behind a HTTPS/SSL proxy and in a secure VPC with no public IP addresses. In such cases, only pull subscription is a direct option. 
+Cloud Pub/Sub does not allow non-HTTPS and non-public URLs as endpoints for push subscriptions ([source](https://cloud.google.com/pubsub/docs/push)). Often times GCE instances hosting web services are deployed behind a HTTPS/SSL proxy with SSL offloading done at the proxy and in a secure VPC with no public IP addresses. In such cases, only pull subscription is a direct option. 
 
 This solution tries to provide a solution for supporting push for such instances using [Cloud Functions](https://cloud.google.com/functions) and [Serverless VPC Access Connector](https://cloud.google.com/vpc/docs/configure-serverless-vpc-access) to deliver the messsage via push to such GCE instances.
 
@@ -40,17 +40,19 @@ And finally here is the solution workflow at the time of GCE instance shutting d
 
 In a GCP project,
 
-1. Create a VPC in your project in which your GCE instances will be deployed 
+1. Create a VPC in your project in which your GCE instances will be deployed. 
+
+1. Ensure that [Private Google Access](https://cloud.google.com/vpc/docs/configure-private-google-access) is enabled on the subnet or a [Cloud NAT](https://cloud.google.com/nat) is configured for the region. Without this `gcloud` CLI commands will not be able to subscribe to the PubSub topic or run other `gcloud` commands. 
 
 1. Setup a [Cloud Pub/Sub](https://cloud.google.com/pubsub) topic
 
 ### Step 1: Deploy Cloud Function
 
-Cloud Function takes the IP address of the VM and optionally, URI path as query parameters `ip` and `uri_path` respectively. `ip` is a mandatory query parameter and `uri_path` is optional.
+Cloud Function takes the IP address of the VM and optionally, URI path as query parameters `ip` and `uri-path` respectively. `ip` is a mandatory query parameter and `uri-path` is optional.
 
-The Cloud Function also looks for a field called `uri_path` in the push message from PubSub. 
+The Cloud Function also looks for a field called `uri-path` in the push message from PubSub. 
 
-If both `uri_path` parameters are specified, then `uri_path` in the PubSub message takes higher precedence. If none are specified, then an error is returned by the Cloud Function.
+If both `uri-path` parameters are specified, then `uri-path` in the PubSub message takes higher precedence. If none are specified, then an error is returned by the Cloud Function.
 
 To restrict unwanted and external invocations of the function, the `ingress-settings` is set to `internal-only`. Hence only resources within the project can invoke the Cloud Function.
 
@@ -59,7 +61,7 @@ To restrict unwanted and external invocations of the function, the `ingress-sett
 
 ### Step 3: Create a GCE instance with appropriate metadata added for startup and shutdown scripts
 
-GCE instance looks for the following metadata on the instances `pubsub-topic` and `cloudfn-endpoint`. Also if optionally `uri_path` is specified, then it will be used to set the `uri_path` in the Cloud Function query parameter.
+GCE instance looks for the following metadata on the instances `pubsub-topic` and `cloudfn-endpoint`. Also if optionally `uri-path` is specified, then it will be used to set the `uri-path` in the Cloud Function query parameter.
 
 The script to subscribe to the Cloud Pub/Sub topic will be part of  `startup-script-url`. The script to unsubscribe to the Cloud Pub/Sub topic will be part of `shutdown-script-url`.
 
