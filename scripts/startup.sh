@@ -148,7 +148,7 @@ validate_cloudfn_endpoint ()
         exit -7
     fi
 
-    if echo "$CLOUDFN_ENDPOINT" | grep -Eqv "^https\:\/\/([a-zA-Z0-9\-\_]+(\.)?)+((\/)[^\/]*)?$"
+    if echo "$CLOUDFN_ENDPOINT" | grep -Eqv "^https\:\/\/([^\/]+(\.)?)+((\/)[^\/]*)?$"
     then
         echo "Cloud Function endpoint specified should start with https:// and must contain only the hostname and the function name and must not contain a trailing forward slash (/)."
         echo "Invalid Cloud Function endpoint specified ($CLOUDFN_ENDPOINT). Exiting."
