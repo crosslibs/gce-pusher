@@ -26,7 +26,7 @@ gcloud functions deploy <name-of-the-function> \
     --runtime nodejs10 \
     --trigger-http \
     --timeout 10s \
-    --ingress-settings internal-only
+    --ingress-settings internal-only \
     --allow-unauthenticated
 ```
 

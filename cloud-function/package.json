@@ -2,7 +2,7 @@
   "name": "gcepusher",
   "version": "1.0.0",
   "description": "Cloud Function leveraged by GCE Pusher solution",
-  "main": "index.js",
+  "main": "function.js",
   "scripts": {
     "start": "functions-framework --target=gcePusher"
   },

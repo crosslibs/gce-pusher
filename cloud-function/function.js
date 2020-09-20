@@ -15,14 +15,14 @@
 
 'use strict';
 
-import { v4 as uuidv4 } from 'uuid';
-import { request } from 'axios';
+const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
 
 /**
  * Returns true if the IP address is a valid IPv4 address, false otherwise.
  * @param ip string
  */
-export function isValidIP(ip) {
+exports.isValidIP = (ip) => {
     const octets = ip.match(/^\s*([1-9]\d*)\.(\d+)\.(\d+)\.([1-9]\d*)\s*$/);
     return ( (ip !== null) 
             && octets 
@@ -40,10 +40,10 @@ export function isValidIP(ip) {
  * @param onSuccess callback to be called on success with the response
  * @param onError callback to be called on error with the error object
  */
-export function notifyGCE(invocationID, uri, method, onSuccess, onError) {
+exports.notifyGCE = (invocationID, uri, method, onSuccess, onError) => {
     console.log(invocationID, ': Sending request to GCE instance');
 
-    request({
+    axios.request({
         url: uri,
         method: method.toLowerCase(),
         timeout: 5000 // 5 seconds
@@ -58,7 +58,7 @@ export function notifyGCE(invocationID, uri, method, onSuccess, onError) {
  * @param req https://expressjs.com/en/api.html#req
  * @param res https://expressjs.com/en/api.html#res
  */
-export function gcePusher(req, res) {
+exports.gcePusher = (req, res) => {
 
     var invocationID = uuidv4();
     console.log(invocationID, ': Cloud Function invoked: GCE Pusher');
