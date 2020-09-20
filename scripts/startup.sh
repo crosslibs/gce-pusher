@@ -18,8 +18,8 @@
 IP_KEY=ip
 URI_SCHEME_KEY=scheme
 URI_PATH_KEY=path
-URI_PORT=port
-URI_METHOD=method
+URI_PORT_KEY=port
+URI_METHOD_KEY=method
 PUBSUB_TOPIC_KEY=pubsub-topic
 CLOUDFN_ENDPOINT_KEY=cloudfn-endpoint
 
