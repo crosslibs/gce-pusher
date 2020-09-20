@@ -88,10 +88,10 @@ validate_port ()
 {
     if metadata_not_found "$URI_PORT"
     then
-        DEFAULT_PORT=DEFAULT_HTTPS_PORT
+        DEFAULT_PORT="$DEFAULT_HTTPS_PORT"
         if echo "$URI_SCHEME" | grep -Eq "^http$"
         then
-            DEFAULT_PORT=DEFAULT_HTTP_PORT
+            DEFAULT_PORT="$DEFAULT_HTTP_PORT"
         fi
         echo "Instance metadata $URI_PORT_KEY is not specified. Setting $URI_PORT_KEY value to default: $DEFAULT_PORT."
         URI_PORT="$DEFAULT_PORT"
@@ -189,7 +189,7 @@ prepare_push_endpoint ()
 
     if [ ! -z "URI_METHOD" ]
     then
-        PUSH_ENDPOINT="$PUSH_ENDPOINT&$URI_METHOD=$URI_METHOD"
+        PUSH_ENDPOINT="$PUSH_ENDPOINT&$URI_METHOD_KEY=$URI_METHOD"
     fi
 }
 
@@ -231,7 +231,7 @@ create_pubsub_subscription ()
 validate_pubsub_subscription
 validate_pubsub_topic
 validate_uri_scheme
-validate_uri_port
+validate_port
 validate_uri_path
 validate_uri_method
 validate_cloudfn_endpoint
