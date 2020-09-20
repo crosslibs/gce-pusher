@@ -15,18 +15,26 @@
 #! /bin/sh
 
 # Retrieve metadata from the instance
-URI_SCHEME_KEY=uri-scheme
-URI_PATH_KEY=uri-path
+IP_KEY=ip
+URI_SCHEME_KEY=scheme
+URI_PATH_KEY=path
+URI_PORT=port
+URI_METHOD=method
 PUBSUB_TOPIC_KEY=pubsub-topic
 CLOUDFN_ENDPOINT_KEY=cloudfn-endpoint
 
 # Default values for optional metadata attributes
 DEFAULT_URI_SCHEME=https
 DEFAULT_URI_PATH="/"
+DEFAULT_HTTPS_PORT=443
+DEFAULT_HTTP_PORT=80
+DEFAULT_URI_METHOD=POST
 
 PROJECT_ID=$(curl -s http://metadata.google.internal/computeMetadata/v1/project/project-id -H "Metadata-Flavor: Google")
 URI_SCHEME=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$URI_SCHEME_KEY -H "Metadata-Flavor: Google")
 URI_PATH=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$URI_PATH_KEY -H "Metadata-Flavor: Google")
+URI_PORT=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$URI_PORT_KEY -H "Metadata-Flavor: Google")
+URI_METHOD=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$URI_METHOD_KEY -H "Metadata-Flavor: Google")
 PUBSUB_TOPIC=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$PUBSUB_TOPIC_KEY -H "Metadata-Flavor: Google")
 CLOUDFN_ENDPOINT=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$CLOUDFN_ENDPOINT_KEY -H "Metadata-Flavor: Google")
 COMPUTE_ENGINE_NAME=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/name -H "Metadata-Flavor: Google")
@@ -41,7 +49,7 @@ metadata_not_found ()
     echo "$1" | grep -q "DOCTYPE"
 }
 
-# Validate uri-scheme is specified
+# Validate uri scheme is specified
 validate_uri_scheme ()
 {
     if metadata_not_found "$URI_SCHEME"
@@ -58,7 +66,7 @@ validate_uri_scheme ()
     fi
 }
 
-# Validate uri-path is specified
+# Validate uri path is specified
 validate_uri_path ()
 {
     if metadata_not_found "$URI_PATH"
@@ -70,8 +78,47 @@ validate_uri_path ()
     if echo "$URI_PATH" | grep -Eqv "^(\/[^\/\?\#]+)*(\/)?(\?([^\#\&]+\=[^\#\&]+(\&)?)*)?(\#(.*))?$"
     then
         echo "Invalid value specified ($URI_PATH) for instance metadata $URI_PATH_KEY"
-        echo "Instance metadata value for $URI_PATH_KEY must be be a URI path starting with a / (e.g. /users/1 or /users/1?param1=one&param2=2#abc)."
+        echo "Instance metadata value for $URI_PATH_KEY must be a URI path starting with a / (e.g. /users/1 or /users/1?param1=one&param2=2#abc)."
         exit -2
+    fi
+}
+
+# Validate port  specified
+validate_port ()
+{
+    if metadata_not_found "$URI_PORT"
+    then
+        DEFAULT_PORT=DEFAULT_HTTPS_PORT
+        if echo "$URI_SCHEME" | grep -Eq "^http$"
+        then
+            DEFAULT_PORT=DEFAULT_HTTP_PORT
+        fi
+        echo "Instance metadata $URI_PORT_KEY is not specified. Setting $URI_PORT_KEY value to default: $DEFAULT_PORT."
+        URI_PORT="$DEFAULT_PORT"
+    fi
+
+    if echo "$URI_PORT" | grep -Eqv "^[1-9][0-9]*$"
+    then
+        echo "Invalid value specified ($URI_PORT) for instance metadata $URI_PORT_KEY"
+        echo "Instance metadata value for $URI_PORT_KEY must be a positive integer."
+        exit -3
+    fi
+}
+
+# Validate method is specified
+validate_uri_method ()
+{
+    if metadata_not_found "$URI_METHOD"
+    then
+        echo "Instance metadata $URI_METHOD_KEY is not specified. Setting $URI_METHOD_KEY value to default: $DEFAULT_URI_METHOD."
+        URI_METHOD="$DEFAULT_URI_METHOD"
+    fi
+
+    if echo "$URI_METHOD" | grep -Eqvi "^(post)|(get)$"
+    then
+        echo "Invalid value specified ($URI_METHOD) for instance metadata $URI_METHOD_KEY"
+        echo "Instance metadata value for $URI_METHOD_KEY must be GET or POST only."
+        exit -4
     fi
 }
 
@@ -81,14 +128,14 @@ validate_pubsub_topic ()
     if metadata_not_found "$PUBSUB_TOPIC"
     then
         echo "Instance metadata $PUBSUB_TOPIC_KEY is not specified. Exiting."
-        exit -3
+        exit -5
     fi
 
     TOPIC_DETAILS=$(gcloud pubsub topics describe "$PUBSUB_TOPIC" 2>&1)
     if echo "$TOPIC_DETAILS" | grep -q "NOT_FOUND"
     then
         echo "Pub/sub topic ($PUBSUB_TOPIC) specified does not exist in the current project. Exiting."
-        exit -4
+        exit -6
     fi
 }
 
@@ -98,14 +145,14 @@ validate_cloudfn_endpoint ()
     if metadata_not_found "$CLOUDFN_ENDPOINT"
     then
         echo "Instance metadata $CLOUDFN_ENDPOINT_KEY is not specified. Exiting."
-        exit -5
+        exit -7
     fi
 
-    if echo "$CLOUDFN_ENDPOINT" | grep -Eqv "^https\:\/\/([a-zA-Z0-9\-\_]+(\.)?)+(\/)?$"
+    if echo "$CLOUDFN_ENDPOINT" | grep -Eqv "^https\:\/\/([a-zA-Z0-9\-\_]+(\.)?)+((\/)[^\/]*)?$"
     then
-        echo "Cloud Function endpoint specified should start with https:// and must contain only the hostname."
+        echo "Cloud Function endpoint specified should start with https:// and must contain only the hostname and the function name and must not contain a trailing forward slash (/)."
         echo "Invalid Cloud Function endpoint specified ($CLOUDFN_ENDPOINT). Exiting."
-        exit -6
+        exit -8
     fi
 }
 
@@ -116,23 +163,33 @@ validate_pubsub_subscription ()
     if echo "$SUBSCRIPTION_DETAILS" | grep -qv "NOT_FOUND"
     then
         echo "Pub/sub topic ($UNIQUE_SUBSCRIPTION_NAME) specified already exists in the current project. Exiting."
-        exit -7
+        exit -9
     fi
 }
 
 # Prepare final cloud function endpoint
 prepare_push_endpoint ()
 {
-    PUSH_ENDPOINT="$CLOUDFN_ENDPOINT?ip=$COMPUTE_ENGINE_IP"
+    PUSH_ENDPOINT="$CLOUDFN_ENDPOINT?$IP_KEY=$COMPUTE_ENGINE_IP"
     
     if [ ! -z "URI_PATH" ]
     then
-        PUSH_ENDPOINT="$PUSH_ENDPOINT&uri-path=$URI_PATH"
+        PUSH_ENDPOINT="$PUSH_ENDPOINT&$URI_PATH_KEY=$URI_PATH"
     fi
     
     if [ ! -z "URI_SCHEME" ]
     then
-        PUSH_ENDPOINT="$PUSH_ENDPOINT&uri-scheme=$URI_SCHEME"
+        PUSH_ENDPOINT="$PUSH_ENDPOINT&$URI_SCHEME_KEY=$URI_SCHEME"
+    fi
+
+    if [ ! -z "URI_PORT" ]
+    then
+        PUSH_ENDPOINT="$PUSH_ENDPOINT&$URI_PORT_KEY=$URI_PORT"
+    fi
+
+    if [ ! -z "URI_METHOD" ]
+    then
+        PUSH_ENDPOINT="$PUSH_ENDPOINT&$URI_METHOD=$URI_METHOD"
     fi
 }
 
@@ -147,6 +204,8 @@ print_config ()
     echo "cloud function endpoint = $CLOUDFN_ENDPOINT"
     echo "uri scheme = $URI_SCHEME"
     echo "uri path = $URI_PATH"
+    echo "port = $URI_PORT"
+    echo "http method = $URI_METHOD"
     echo "pub/sub topic = $PUBSUB_TOPIC"
     echo "pub/sub subscription = $UNIQUE_SUBSCRIPTION_NAME"
     echo "pub/sub subscription push endpoint = $PUSH_ENDPOINT"
@@ -163,7 +222,7 @@ create_pubsub_subscription ()
     else
         echo "Error occurred while creating pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME) for topic ($PUBSUB_TOPIC)."
         echo "Error details: $CREATE_OUTPUT"
-        exit -8
+        exit -10
     fi
 }
 
@@ -172,7 +231,9 @@ create_pubsub_subscription ()
 validate_pubsub_subscription
 validate_pubsub_topic
 validate_uri_scheme
+validate_uri_port
 validate_uri_path
+validate_uri_method
 validate_cloudfn_endpoint
 
 

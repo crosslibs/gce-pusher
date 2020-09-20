@@ -48,23 +48,18 @@ In a GCP project,
 
 ### Step 1: Deploy Cloud Function
 
-Cloud Function takes the IP address of the VM and optionally, URI path as query parameters `ip` and `uri-path` respectively. `ip` is a mandatory query parameter and `uri-path` is optional.
-
-The Cloud Function also looks for a field called `uri-path` in the push message from PubSub. 
-
-If both `uri-path` parameters are specified, then `uri-path` in the PubSub message takes higher precedence. If none are specified, then an error is returned by the Cloud Function.
-
-To restrict unwanted and external invocations of the function, the `ingress-settings` is set to `internal-only`. Hence only resources within the project can invoke the Cloud Function.
+Cloud Function takes the IP address of the VM and optionally, URI path, URI scheme, HTTP method and port as query parameters `ip`, `path`, `scheme`, `method` and `port` respectively. `ip` is the only mandatory query parameter and `path`, `method`, `port`, `scheme` are optional.
 
 ### Step 2: Setup Serverless VPC Access Connector
 
 
 ### Step 3: Create a GCE instance with appropriate metadata added for startup and shutdown scripts
 
-GCE instance looks for the following metadata on the instances `pubsub-topic` and `cloudfn-endpoint`. Also if optionally `uri-path` is specified, then it will be used to set the `uri-path` in the Cloud Function query parameter.
+GCE instance looks for the following metadata on the instances `pubsub-topic` and `cloudfn-endpoint`. 
 
-The script to subscribe to the Cloud Pub/Sub topic will be part of  `startup-script-url`. The script to unsubscribe to the Cloud Pub/Sub topic will be part of `shutdown-script-url`.
+Also if optionally `path`, `method`, `port` are specified, then the provided values will be used to set the Cloud Function query parameters accordingly.
 
+The script to subscribe to the Cloud Pub/Sub topic will be part of `startup-script-url`. The script to unsubscribe to the Cloud Pub/Sub topic will be part of `shutdown-script-url`.
 
 ### Step 4: Delete a GCE instance
 

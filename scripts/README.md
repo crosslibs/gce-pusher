@@ -26,8 +26,10 @@ and
 `shutdown-script-url=gs://<bucket-name-here>/optional-folders-if-applicable>/shutdown.sh`
 
 ## Additional instance metadata leveraged by the startup script is as follows
-1. `uri-scheme=<http|https> (Optional. Default value: https)`
-2. `uri-path=<URI path of the webservice running on this instance> (Optional. Default value: nil)`
-3. `pubsub-topic=<pubsub topic name> (Required and must exist within the current project)`
-4. `cloudfn-endpoint=<URI of Cloud Function to be used for push> (Required and must only contain the URI scheme and host only. No URI path or query parameters or fragments allowed)`
+1. `scheme=<http|https> (Optional. Default value: https)`
+2. `path=<URI path of the webservice running on this instance> (Optional. Default value: nil)`
+3. `port=<port on which the HTTP/HTTPS service is listening> (Optional. Default value: 80 for HTTP and 443 for HTTPS)`
+4. `method=<HTTP method> (Optional. Default value: POST. Only GET or POST are allowed)`
+5. `pubsub-topic=<pubsub topic name> (Required and must exist within the current project)`
+6. `cloudfn-endpoint=<URI of Cloud Function to be used for push> (Required and must only contain the URI scheme and host only. No URI path or query parameters or fragments allowed)`
 
