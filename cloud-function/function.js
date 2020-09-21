@@ -148,7 +148,10 @@ exports.gcePusher = (req, res) => {
                 id: invocationID,
                 method: method,
                 uri: uri,
-                response: response
+                response: {
+                    status: response.status,
+                    data: response.data
+                }
             });
         },
         error => {
