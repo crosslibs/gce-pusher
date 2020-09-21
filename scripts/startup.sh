@@ -30,6 +30,7 @@ DEFAULT_HTTPS_PORT=443
 DEFAULT_HTTP_PORT=80
 DEFAULT_URI_METHOD=POST
 
+PROJECT_NUM=$(curl -s http://metadata.google.internal/computeMetadata/v1/project/numeric-project-id -H "Metadata-Flavor: Google")
 PROJECT_ID=$(curl -s http://metadata.google.internal/computeMetadata/v1/project/project-id -H "Metadata-Flavor: Google")
 URI_SCHEME=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$URI_SCHEME_KEY -H "Metadata-Flavor: Google")
 URI_PATH=$(curl -s http://metadata.google.internal/computeMetadata/v1/instance/attributes/$URI_PATH_KEY -H "Metadata-Flavor: Google")
@@ -215,7 +216,7 @@ print_config ()
 create_pubsub_subscription ()
 {
     echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME"
-    CREATE_OUTPUT=$(gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --push-endpoint "$PUSH_ENDPOINT" 2>&1)
+    CREATE_OUTPUT=$(gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --push-endpoint "$PUSH_ENDPOINT" --push-auth-service-account "$PROJECT_NUM-compute@developer.gserviceaccount.com" 2>&1)
     if echo "$CREATE_OUTPUT" | grep -q "^Created subscription"
     then
         echo "Pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME) for topic ($PUBSUB_TOPIC) created succesfully."
