@@ -46,12 +46,36 @@ In a GCP project,
 
 1. Setup a [Cloud Pub/Sub](https://cloud.google.com/pubsub) topic
 
-### Step 1: Deploy Cloud Function
+### Step 1: Setup Serverless VPC Access Connector
+
+Create a Serverless VPC Access Connector using the following commands in order:
+
+1. Enable Serverless VPC Access API 
+`gcloud services enable vpcaccess.googleapis.com`
+
+2. Create the connector 
+```
+gcloud compute networks vpc-access connectors create <name> \
+    --network <network-name> \
+    --region <region> \
+    --range <CIDR for connector>
+```
+
+### Step 2: Deploy Cloud Function
 
 Cloud Function takes the IP address of the VM and optionally, URI path, URI scheme, HTTP method and port as query parameters `ip`, `path`, `scheme`, `method` and `port` respectively. `ip` is the only mandatory query parameter and `path`, `method`, `port`, `scheme` are optional.
 
-### Step 2: Setup Serverless VPC Access Connector
-
+```
+gcloud functions deploy <name-of-the-function> \
+    --region <region> \
+    --vpc-connector <vpc-connector> \
+    --memory 128MB \
+    --runtime nodejs10 \
+    --trigger-http \
+    --timeout 10s \
+    --ingress-settings internal-only \
+    --allow-unauthenticated
+```
 
 ### Step 3: Create a GCE instance with appropriate metadata added for startup and shutdown scripts
 
