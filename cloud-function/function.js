@@ -143,7 +143,7 @@ exports.gcePusher = (req, res) => {
         uri, 
         method,
         response => {
-            console.log(invocationID, ': GCE notification successful. Response: ' + response);
+            console.log(invocationID, ': GCE notification successful. Response status: ' + response.status);
             res.status(200).json({
                 id: invocationID,
                 method: method,
