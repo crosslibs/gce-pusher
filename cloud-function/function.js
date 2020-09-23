@@ -67,20 +67,16 @@ exports.gcePusher = (req, res) => {
     if ( req.method === 'GET' ) {
         if ( process.env.SITE_VERIFICATION_CODE && process.SITE_VERIFICATION_CODE !== '' ){
             console.log(invocationID, ': Google Domain Verification invoked');
-            res.send(`<html><head><meta name="google-site-verification" content="${ process.env.SITE_VERIFICATION_CODE }" /><title/></head><body/></html>`);
-            return;
+            res.send(`<html><head><meta name="google-site-verification" content="${ process.env.SITE_VERIFICATION_CODE }" /><title></title></head><body></body></html>`);
         }
         else {
             console.log('SITE_VERIFICATION_CODE is not set in environment variables. Google domain verification is not enabled.');
             res.status(400).json({
                     id: invocationID,
-                    error: 'HTTP GET is allowed only for Google Domain verification purposes, and, environment variable SITE_VERIFICATION_CODE must be set.'
+                    error: 'HTTP GET method is allowed only for Google Domain verification purposes, and, environment variable SITE_VERIFICATION_CODE must be set.'
             });
-            return;
         }
-    }
-    else {
-        console.log('SITE_VERIFICATION_CODE is not set in environment variables. Google domain verification will not be enabled.')
+        return;
     }
     
     // Push subscription on Pub/Sub topic always makes a POST. 
