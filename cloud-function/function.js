@@ -65,7 +65,7 @@ exports.gcePusher = (req, res) => {
 
     // GET is used only for Google Domain Verification
     if ( req.method === 'GET' ) {
-        if ( process.env.SITE_VERIFICATION_CODE && process.SITE_VERIFICATION_CODE !== '' ){
+        if ( process.env.SITE_VERIFICATION_CODE && process.env.SITE_VERIFICATION_CODE !== '' ){
             console.log(invocationID, ': Google Domain Verification invoked');
             res.send(`<html><head><meta name="google-site-verification" content="${ process.env.SITE_VERIFICATION_CODE }" /><title></title></head><body></body></html>`);
         }
