@@ -37,15 +37,17 @@ exports.isValidIP = (ip) => {
  * @param invocationID string for tracing purposes
  * @param uri string
  * @param method string
+ * @param data object raw data as part of pub/sub message
  * @param onSuccess callback to be called on success with the response
  * @param onError callback to be called on error with the error object
  */
-exports.notifyGCE = (invocationID, uri, method, onSuccess, onError) => {
+exports.notifyGCE = (invocationID, uri, method, data, onSuccess, onError) => {
     console.log(invocationID, ': Sending request to GCE instance');
 
     axios.request({
         url: uri,
         method: method.toLowerCase(),
+        data: data,
         timeout: 5000 // 5 seconds
     })
     .then(response => onSuccess(response))
@@ -96,12 +98,14 @@ exports.gcePusher = (req, res) => {
     const DEFAULT_URI_PATH = '/';
     const DEFAULT_HTTPS_PORT = '443';
     const DEFAULT_HTTP_PORT = '80';
+    const DEFAULT_REQ_BODY = null;
 
     var ip = req.query.ip || null;
     var scheme = req.query.scheme || DEFAULT_URI_SCHEME;
     var path = req.query.path || DEFAULT_URI_PATH;
     var method = (req.query.method || DEFAULT_HTTP_METHOD).toUpperCase();
     var port = (req.query.port || (scheme === HTTPS_SCHEME ? DEFAULT_HTTPS_PORT : DEFAULT_HTTP_PORT));
+    var data = req.body || DEFAULT_REQ_BODY;
     
     // Validate IP
     if(ip === null) {
@@ -152,12 +156,22 @@ exports.gcePusher = (req, res) => {
     console.log(invocationID, ': URI Path: ', path);
     console.log(invocationID, ': HTTP Method: ', method);
     console.log(invocationID, ': URI to be invoked: ', uri);
+    if (data === null) {
+        console.log(invocationID, ': HTTP Request Body: null');
+    }
+    else if(data === undefined) {
+        console.log(invocationID, ': HTTP Request Body: undefined');
+    }
+    else {
+        console.log(invocationID, ': HTTP Request Body: ', data);
+    }
 
     // Send the request to GCE instance
     this.notifyGCE(
         invocationID, 
         uri, 
         method,
+        data,
         response => {
             console.log(invocationID, ': GCE notification successful. Response status: ' + response.status);
             res.status(200).json({
