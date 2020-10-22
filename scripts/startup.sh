@@ -25,7 +25,7 @@ CLOUDFN_ENDPOINT_KEY=cloudfn-endpoint
 ACK_DEADLINE_KEY=ack-deadline
 MAX_DELIVERY_ATTEMPTS_KEY=max-delivery-attempts
 MESSAGE_RETENTION_DURATION_KEY=message-retention-duration
-DEAD_LETTER_TOPIC_KEY=dead_letter_topic
+DEAD_LETTER_TOPIC_KEY=dead-letter-topic
 
 # Default values for optional metadata attributes
 DEFAULT_URI_SCHEME=https
@@ -169,18 +169,18 @@ validate_dead_letter_topic ()
     fi
 }
 
-# Validate max retries  specified
-validate_max_retries ()
+# Validate max delivery attempts
+validate_max_delivery_attempts ()
 {
-    if metadata_not_found "$MAX_RETRIES"
+    if metadata_not_found "$MAX_DELIVERY_ATTEMPTS"
     then
-        MAX_RETRIES="$DEFAULT_MAX_RETRIES"
+        MAX_DELIVERY_ATTEMPTS="$DEFAULT_MAX_DELIVERY_ATTEMPTS"
     fi
 
-    if echo "$MAX_RETRIES" | grep -Eqv "^[1-9][0-9]*$"
+    if echo "$MAX_DELIVERY_ATTEMPTS" | grep -Eqv "^[1-9][0-9]*$"
     then
-        echo "Invalid value specified ($MAX_RETRIES) for instance metadata $MAX_RETRIES_KEY"
-        echo "Instance metadata value for $MAX_RETRIES_KEY must be a positive integer."
+        echo "Invalid value specified ($MAX_DELIVERY_ATTEMPTS) for instance metadata $MAX_DELIVERY_ATTEMPTS_KEY"
+        echo "Instance metadata value for $MAX_DELIVERY_ATTEMPTS_KEY must be a positive integer."
         exit -13
     fi
 }
@@ -289,7 +289,7 @@ print_config ()
     echo "pub/sub subscription push endpoint = $PUSH_ENDPOINT"
     echo "deadletter topic = $DEAD_LETTER_TOPIC"
     echo "ack deadline = $ACK_DEADLINE"
-    echo "max retries = $MAX_RETRIES"
+    echo "max delivery attempts = $MAX_DELIVERY_ATTEMPTS"
     echo "message retention duration = $MESSAGE_RETENTION_DURATION"
 }
 
@@ -297,7 +297,7 @@ print_config ()
 create_pubsub_subscription ()
 {
     echo "Creating subscription for topic: $PUBSUB_TOPIC with name: $UNIQUE_SUBSCRIPTION_NAME"
-    CREATE_OUTPUT=$(gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --max-retries "$MAX_RETRIES" --dead-letter-topic "$DEAD_LETTER_TOPIC" --dead-letter-topic-project "$PROJECT_ID" --ack-deadline "$ACK_DEADLINE" --message-retention-duration "$MESSAGE_RETENTION_DURATION" --push-endpoint "$PUSH_ENDPOINT" --push-auth-service-account "$PROJECT_NUM-compute@developer.gserviceaccount.com" 2>&1)
+    CREATE_OUTPUT=$(gcloud pubsub subscriptions create "$UNIQUE_SUBSCRIPTION_NAME" --topic "$PUBSUB_TOPIC" --max-delivery-attempts "$MAX_DELIVERY_ATTEMPTS" --dead-letter-topic "$DEAD_LETTER_TOPIC" --dead-letter-topic-project "$PROJECT_ID" --ack-deadline "$ACK_DEADLINE" --message-retention-duration "$MESSAGE_RETENTION_DURATION" --push-endpoint "$PUSH_ENDPOINT" --push-auth-service-account "$PROJECT_NUM-compute@developer.gserviceaccount.com" 2>&1)
     if echo "$CREATE_OUTPUT" | grep -q "^Created subscription"
     then
         echo "Pub/sub subscription ($UNIQUE_SUBSCRIPTION_NAME) for topic ($PUBSUB_TOPIC) created succesfully."
@@ -319,7 +319,7 @@ validate_uri_method
 validate_cloudfn_endpoint
 validate_ack_deadline
 validate_message_retention_duration
-validate_max_retries
+validate_max_delivery_attempts
 validate_dead_letter_topic
 
 
