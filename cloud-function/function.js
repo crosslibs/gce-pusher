@@ -18,6 +18,8 @@
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
 
+const AXIOS_REQUEST_TIMEOUT = 120000; // 120 seconds
+
 /**
  * Returns true if the IP address is a valid IPv4 address, false otherwise.
  * @param ip string
@@ -48,7 +50,7 @@ exports.notifyGCE = (invocationID, uri, method, data, onSuccess, onError) => {
         url: uri,
         method: method.toLowerCase(),
         data: data,
-        timeout: 5000 // 5 seconds
+        timeout: AXIOS_REQUEST_TIMEOUT
     })
     .then(response => onSuccess(response))
     .catch(error => onError(error));
