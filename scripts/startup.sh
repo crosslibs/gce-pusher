@@ -287,6 +287,10 @@ print_config ()
     echo "pub/sub topic = $PUBSUB_TOPIC"
     echo "pub/sub subscription = $UNIQUE_SUBSCRIPTION_NAME"
     echo "pub/sub subscription push endpoint = $PUSH_ENDPOINT"
+    echo "deadletter topic = $DEAD_LETTER_TOPIC"
+    echo "ack deadline = $ACK_DEADLINE"
+    echo "max retries = $MAX_RETRIES"
+    echo "message retention duration = $MESSAGE_RETENTION_DURATION"
 }
 
 # Create subscription to the specified topic
@@ -314,7 +318,7 @@ validate_uri_path
 validate_uri_method
 validate_cloudfn_endpoint
 validate_ack_deadline
-validate_max_message_retention_duration
+validate_message_retention_duration
 validate_max_retries
 validate_dead_letter_topic
 
